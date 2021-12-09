@@ -9,12 +9,13 @@ import (
 	"strconv"
 )
 
+// is there a prolbme here?
 func main() {
 	f, _ := os.Open("../input")
 	s := bufio.NewScanner(f)
 
 	max := -99999
-	costs := [10000]float64{}
+	costs := [10000]int{}
 	hasCrab := map[int]bool{}
 
 	s.Scan()
@@ -27,30 +28,37 @@ func main() {
 		}
 	}
 
-	fmt.Println(max)
-
 	f, _ = os.Open("../input")
 	s = bufio.NewScanner(f)
 	s.Scan()
 
 	for i := 0; i < max; i++ {
-		if hasCrab[i] {
-			for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
-				intVal, _ := strconv.Atoi(val)
-				costs[i] += math.Abs(float64(intVal - i))
-			}
+
+		for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
+			intVal, _ := strconv.Atoi(val)
+			costs[i] += cost(int(math.Abs(float64(intVal - i))))
 		}
 	}
 
-	min := 999999999.0
+	fmt.Println(costs)
+
+	min := 999999999
 	for i := 0; i < max; i++ {
-		if hasCrab[i] {
-			if costs[i] < min {
-				min = costs[i]
-			}
+		if costs[i] < min {
+			min = costs[i]
 		}
+
 	}
 	fmt.Println(min)
 }
 
+func cost(difference int) int {
+	cost := 0
+	for i := 1; i < difference+1; i++ {
+		cost += i
+	}
+	return cost
+}
+
 // 1698 too low
+// 85015849 too high
