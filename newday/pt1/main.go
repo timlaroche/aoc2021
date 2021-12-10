@@ -35,7 +35,7 @@ func printStack(s *stack) {
 }
 
 func main() {
-	f, _ := os.Open("../input copy")
+	f, _ := os.Open("../input")
 	s := bufio.NewScanner(f)
 
 	cost := map[rune]int{
@@ -45,68 +45,40 @@ func main() {
 		'>': 25137,
 	}
 
+	pair := map[rune]rune{
+		')': '(',
+		']': '[',
+		'}': '{',
+		'>': '<',
+	}
+
 	stack := &stack{}
 	score := 0
 	corrupted := 0
 
 	for s.Scan() {
-		early := false
+		skip := false
 		for _, val := range s.Text() {
 			switch val {
 			// opening
 			case '(', '[', '{', '<':
 				stack.push(val)
 			// closing
-			case ')':
-				if stack.peek() == '(' {
-					stack.pop()
-				} else {
-					fmt.Printf("expected %c but found %c\n", stack.peek(), val)
-					fmt.Printf("adding %d to score using key\n", cost[')'])
-					score += cost[')']
-					early = true
+			case ')', ']', '}', '>':
+				if pair[val] != stack.peek() {
 					corrupted++
-					break
-				}
-			case ']':
-				if stack.peek() == '[' {
-					stack.pop()
+					score += cost[val]
+					skip = true
 				} else {
-					fmt.Printf("expected %c but found %c\n", stack.peek(), val)
-					fmt.Printf("adding %d to score using key\n", cost[']'])
-					score += cost[']']
-					early = true
-					corrupted++
-					break
-				}
-			case '}':
-				if stack.peek() == '{' {
 					stack.pop()
-				} else {
-					fmt.Printf("expected %c but found %c\n", stack.peek(), val)
-					fmt.Printf("adding %d to score using key \n", cost['}'])
-
-					score += cost['}']
-					early = true
-					corrupted++
-
-					break
-				}
-			case '>':
-				if stack.peek() == '<' {
-					stack.pop()
-				} else {
-					fmt.Printf("expected %c but found %c\n", stack.peek(), val)
-					fmt.Printf("adding %d to score using key \n", cost['>'])
-					score += cost['>']
-					early = true
-					corrupted++
-
-					break
 				}
 			}
+			if skip {
+				break
+			}
 		}
-		if early {
+		if skip {
+			continue
 		}
 	}
 	fmt.Println(corrupted)
