@@ -41,95 +41,84 @@ func printStack(s *stack) {
 	fmt.Print("end$$\n")
 }
 
-var cost map[rune]int
-
-var pair map[rune]rune
-
-var closingPair map[rune]rune
-
-var completeScore map[rune]int
-
 func main() {
-	f, _ := os.Open("../input copy")
+	f, _ := os.Open("../input")
 	s := bufio.NewScanner(f)
 
-	// global setup
-	cost = map[rune]int{
+	cost := map[rune]int{
 		')': 3,
 		']': 57,
 		'}': 1197,
 		'>': 25137,
 	}
-	pair = map[rune]rune{
+
+	pair := map[rune]rune{
 		')': '(',
 		']': '[',
 		'}': '{',
 		'>': '<',
 	}
-	closingPair = map[rune]rune{
+
+	closingPair := map[rune]rune{
 		'(': ')',
 		'[': ']',
 		'{': '}',
 		'<': '>',
 	}
-	completeScore = map[rune]int{
+
+	sbScore := map[rune]int{
 		')': 1,
 		']': 2,
 		'}': 3,
 		'>': 4,
 	}
 
-	// stack := &stack{}
-	// score := 0
+	score := 0
 	corrupted := 0
 	allScores := []int{}
 
 	for s.Scan() {
-		if !isCorrupted(s.Text()) {
-			fmt.Println("got incomplete")
-			fmt.Println(isValid(s.Text()))
+		skip := false
+		stack := &stack{}
+		for _, val := range s.Text() {
+			switch val {
+			// opening
+			case '(', '[', '{', '<':
+				stack.push(val)
+			// closing
+			case ')', ']', '}', '>':
+				if pair[val] != stack.peek() {
+					corrupted++
+					score += cost[val]
+					skip = true
+				} else {
+					stack.pop()
+				}
+			}
+			if skip {
+				break
+			}
+		}
+		if skip {
+			continue
+		} else {
+			sb := ""
+			score := 0
+			for stack.peek() != 'x' {
+				w := stack.pop()
+				sb += string(closingPair[w])
+			}
+			for _, char := range sb {
+				score = (score * 5) + sbScore[char]
+			}
+			fmt.Printf("%s:%d\n", sb, score)
+			allScores = append(allScores, score)
 		}
 	}
-	fmt.Println(corrupted)
 	sort.Ints(allScores)
+	fmt.Println(len(allScores))
 	fmt.Println(allScores)
+	fmt.Println(allScores[((len(allScores)+1)/2)-1])
 }
 
-// skip corrupted
-func isCorrupted(s string) bool {
-	internalStack := &stack{}
-	for _, val := range s {
-		switch val {
-		// opening
-		case '(', '[', '{', '<':
-			internalStack.push(val)
-		// closing
-		case ')', ']', '}', '>':
-			if pair[val] != internalStack.peek() {
-				return true
-			} else {
-				internalStack.pop()
-			}
-		}
-	}
-	return false
-}
-
-func isValid(s string) bool {
-	internalStack := &stack{}
-	for _, val := range s {
-		switch val {
-		// opening
-		case '(', '[', '{', '<':
-			internalStack.push(val)
-		// closing
-		case ')', ']', '}', '>':
-			if pair[val] != internalStack.peek() {
-				return false
-			} else {
-				internalStack.pop()
-			}
-		}
-	}
-	return true
-}
+// 5487092923 too high
