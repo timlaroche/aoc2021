@@ -3,54 +3,60 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"regexp"
-	"strconv"
 )
 
 func main() {
 	f, _ := os.Open("../input")
 	s := bufio.NewScanner(f)
 
-	max := -99999
-	costs := [10000]float64{}
-	hasCrab := map[int]bool{}
+	ones := 0
+	fours := 0
+	sevens := 0
+	eights := 0
 
-	s.Scan()
+	for s.Scan() {
+		digitCode := regexp.MustCompile("\\|").Split(s.Text(), -1)
+		fmt.Println(digitCode)
+		digits := regexp.MustCompile(" ").Split(digitCode[1], -1)
+		digits = removeEmpty(digits)
 
-	for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
-		intVal, _ := strconv.Atoi(val)
-		hasCrab[intVal] = true
-		if intVal > max {
-			max = intVal
-		}
-	}
-
-	fmt.Println(max)
-
-	f, _ = os.Open("../input")
-	s = bufio.NewScanner(f)
-	s.Scan()
-
-	for i := 0; i < max; i++ {
-		if hasCrab[i] {
-			for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
-				intVal, _ := strconv.Atoi(val)
-				costs[i] += math.Abs(float64(intVal - i))
+		for _, digit := range digits {
+			val := countChars(digit)
+			switch val {
+			case 2: // 2 segments on = 1
+				ones++
+			case 3: // 3 segments on = 7
+				sevens++
+			case 4: // 4 segments on = 4
+				fours++
+			case 7: // 7 segments on = 8
+				eights++
 			}
 		}
 	}
 
-	min := 999999999.0
-	for i := 0; i < max; i++ {
-		if hasCrab[i] {
-			if costs[i] < min {
-				min = costs[i]
-			}
+	fmt.Println(ones + sevens + fours + eights)
+}
+
+func countChars(s string) int {
+	count := 0
+	for range s {
+		count++
+
+	}
+	return count
+}
+
+func removeEmpty(s []string) []string {
+	var r []string
+	for _, val := range s {
+		if val != "" {
+			r = append(r, val)
 		}
 	}
-	fmt.Println(min)
+	return r
 }
 
 // 1698 too low

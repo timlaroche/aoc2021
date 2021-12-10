@@ -3,62 +3,93 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
 	"os"
 	"regexp"
 	"strconv"
 )
 
-// is there a prolbme here?
 func main() {
-	f, _ := os.Open("../input")
+	f, _ := os.Open("../input copy")
 	s := bufio.NewScanner(f)
 
-	max := -99999
-	costs := [10000]int{}
-	hasCrab := map[int]bool{}
+	sum := 0
+	for s.Scan() {
+		digitCode := regexp.MustCompile("\\|").Split(s.Text(), -1)
+		digits := regexp.MustCompile(" ").Split(digitCode[1], -1)
+		digits = removeEmpty(digits)
+		fmt.Println(digits)
 
-	s.Scan()
-
-	for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
-		intVal, _ := strconv.Atoi(val)
-		hasCrab[intVal] = true
-		if intVal > max {
-			max = intVal
+		var sb string
+		for _, digit := range digits {
+			val := countChars(digit)
+			signals := map[rune]bool{}
+			for _, signal := range digit {
+				signals[signal] = true
+			}
+			switch val {
+			case 2: // 2 segments on = 1
+				sb += "1"
+			case 3: // 3 segments on = 7
+				sb += "7"
+			case 4: // 4 segments on = 4
+				sb += "4"
+			case 7: // 7 segments on = 8
+				sb += "8"
+			case 5: // 5 segemnts on = 2 or 3 or 5
+				for _, signal := range digit {
+					signals[signal] = true
+				}
+				if signals['e'] && signals['b'] {
+					sb += "5"
+				}
+				if signals['g'] && signals['a'] {
+					sb += "2"
+				}
+				if signals['b'] && signals['a'] {
+					sb += "3"
+				}
+			case 6:
+				for _, signal := range digit {
+					signals[signal] = true
+				}
+				if signals['e'] && signals['f'] && signals['a'] {
+					sb += "9"
+				}
+				if signals['f'] && signals['g'] && signals['e'] {
+					sb += "6"
+				}
+				if signals['a'] && signals['g'] && signals['e'] {
+					sb += "0"
+				}
+			}
 		}
+		intVal, _ := strconv.Atoi(sb)
+		fmt.Println(intVal)
+		sum += intVal
 	}
-
-	f, _ = os.Open("../input")
-	s = bufio.NewScanner(f)
-	s.Scan()
-
-	for i := 0; i < max; i++ {
-
-		for _, val := range regexp.MustCompile(",").Split(s.Text(), -1) {
-			intVal, _ := strconv.Atoi(val)
-			costs[i] += cost(int(math.Abs(float64(intVal - i))))
-		}
-	}
-
-	fmt.Println(costs)
-
-	min := 999999999
-	for i := 0; i < max; i++ {
-		if costs[i] < min {
-			min = costs[i]
-		}
-
-	}
-	fmt.Println(min)
+	fmt.Println(sum)
 }
 
-func cost(difference int) int {
-	cost := 0
-	for i := 1; i < difference+1; i++ {
-		cost += i
+func countChars(s string) int {
+	count := 0
+	for range s {
+		count++
+
 	}
-	return cost
+	return count
 }
 
-// 1698 too low
-// 85015849 too high
+func removeEmpty(s []string) []string {
+	var r []string
+	for _, val := range s {
+		if val != "" {
+			r = append(r, val)
+		}
+	}
+	return r
+}
+
+// 1413 too low
+// 5398 too low
+// 16486 too low
+// 57650845571
